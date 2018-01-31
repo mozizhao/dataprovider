@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <context:component-scan base-package="main.dao"/>
+    <context:component-scan base-package="main.logic"/>
+    <context:component-scan base-package="main.service"/>
+    <!--mybatis 的 sqlsessionFactoryNean-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--<property name="configLocation" value="classpath:conf.xml"/>-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+        <!--指定实体类包，自动将实体类的简单类名映射为别名-->
+        <property name="typeAliasesPackage" value="main.domain"/>
+    </bean>
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="main.dao"></property>
+        <property name="sqlSessionFactoryBeanName"  value="sqlSessionFactory" />
+    </bean>
+
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+          destroy-method="close">
+        <!-- 指定连接数据库的驱动 -->
+        <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+        <!-- 指定连接数据库的URL -->
+        <property name="jdbcUrl" value="jdbc:mysql://127.0.0.1:10086/scoresystem" />
+        <!-- 指定连接数据库的用户名 -->
+        <property name="user" value="root" />
+        <!-- 指定连接数据库的密码 -->
+        <property name="password" value="mozizhao82289364" />
+        <!--连接池中保留的最大连接数。Default: 15 -->
+        <property name="maxPoolSize" value="40" />
+        <!-- 指定连接数据库连接池的最小连接数 -->
+        <property name="minPoolSize" value="10" />
+        <!-- 指定连接数据库连接池的初始化连接数 取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+        <property name="initialPoolSize" value="5" />
+        <!--最大空闲时间,25000秒内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+        <property name="maxIdleTime" value="25000" />
+        <!--如果设为true那么在取得连接的同时将校验连接的有效性。Default: false -->
+        <property name="testConnectionOnCheckin" value="true" />
+        <!--每18000秒检查所有连接池中的空闲连接。Default: 0 -->
+        <property name="idleConnectionTestPeriod" value="18000" />
+    </bean>
+
+    <dubbo:application name="demo-provider"/>
+    <dubbo:registry address="multicast://224.5.6.7:1234"/>
+    <dubbo:protocol name="dubbo" port="20880"/>
+
+    <dubbo:service interface="main.service.DemoService" ref="demoService"/>
+    <bean id="demoService" class="main.service.impl.DemoServiceImpl"/>
+
+    <dubbo:service interface="main.service.UserInfoService" ref="userInfoService"/>
+    <bean id="userInfoService" class="main.service.impl.UserInfoServiceImpl"/>
+</beans>
